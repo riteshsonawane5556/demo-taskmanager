@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException, Query
-from typing import Dict, List, Optional
+from typing import Dict, List, Literal, Optional
 from models import Task, TaskCreate, TaskUpdate
 from datetime import datetime
 
@@ -10,8 +10,17 @@ _id_counter = 1
 
 
 @router.get("/tasks", response_model=List[Task])
-def list_tasks():
-    return tasks
+def list_tasks(
+    sort_by: Literal["created_at", "updated_at", "due_date", "title"] = Query("created_at", description="Field to sort by"),
+    order: Literal["asc", "desc"] = Query("asc", description="Sort direction"),
+):
+    def sort_key(task: Task):
+        value = getattr(task, sort_by)
+        if value is None:
+            return (1, "")
+        return (0, value) if sort_by == "title" else (0, value)
+
+    return sorted(tasks, key=sort_key, reverse=(order == "desc"))
 
 
 @router.get("/tasks/search", response_model=List[Task])
@@ -56,6 +65,7 @@ def create_task(payload: TaskCreate):
         title=payload.title,
         description=payload.description,
         completed=payload.completed,
+        due_date=payload.due_date,
         created_at=datetime.utcnow(),
     )
     tasks.append(task)
