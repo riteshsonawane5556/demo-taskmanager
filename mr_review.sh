@@ -54,8 +54,16 @@ Be specific, reference file names and line numbers where possible.
 
 ${DIFF_TEXT}"
 
+export ANTHROPIC_API_KEY="${CLAUDE_CODE_OAUTH_TOKEN}"
+
+echo "Claude version: $(claude --version 2>&1)"
+echo "Auth check: $(claude -p 'say hi' --output-format text 2>&1 | head -5)"
+
 echo "Sending diff to Claude for review..."
-REVIEW=$(echo "$REVIEW_PROMPT" | claude -p --output-format text)
+REVIEW=$(echo "$REVIEW_PROMPT" | claude -p --output-format text 2>&1) || {
+  echo "ERROR: Claude exited with code $?. Output: $REVIEW" >&2
+  exit 1
+}
 
 echo "Posting review comment to MR !${MR_IID}..."
 

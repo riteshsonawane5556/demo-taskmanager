@@ -3,6 +3,7 @@ stages:
 
 variables:
   GITLAB_API_URL: "https://gitlab.com/api/v4"
+  ANTHROPIC_API_KEY: $CLAUDE_CODE_OAUTH_TOKEN
 
 claude-mr-review:
   stage: review
