@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, Query
 from typing import Dict, List, Literal, Optional
-from models import Task, TaskCreate, TaskUpdate
+from models import Task, TaskCreate, TaskStats, TaskUpdate
 from datetime import datetime
 
 router = APIRouter()
@@ -38,6 +38,12 @@ def search_tasks(
     if completed is not None:
         result = [t for t in result if t.completed == completed]
     return result
+
+
+@router.get("/tasks/stats", response_model=TaskStats)
+def get_task_stats():
+    completed = sum(1 for t in tasks if t.completed)
+    return TaskStats(total=len(tasks), completed=completed, pending=len(tasks) - completed)
 
 
 @router.patch("/tasks/{task_id}/complete", response_model=Task)
