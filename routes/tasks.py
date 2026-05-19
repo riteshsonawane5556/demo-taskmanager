@@ -72,12 +72,3 @@ def update_task(task_id: int, payload: TaskUpdate):
             return updated
     raise HTTPException(status_code=404, detail="Task not found")
 
-
-@router.delete("/tasks/{task_id}", status_code=204)
-def delete_task(task_id: int):
-    for i, task in enumerate(tasks):
-        if task.id == task_id:
-            tasks.pop(i)
-            return
-    raise HTTPException(status_code=404, detail="Task not found")
-
