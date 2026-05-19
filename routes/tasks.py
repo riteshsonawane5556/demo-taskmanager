@@ -1,5 +1,5 @@
-from fastapi import APIRouter, HTTPException
-from typing import List
+from fastapi import APIRouter, HTTPException, Query
+from typing import List, Optional
 from models import Task, TaskCreate, TaskUpdate
 from datetime import datetime
 
@@ -12,6 +12,32 @@ _id_counter = 1
 @router.get("/tasks", response_model=List[Task])
 def list_tasks():
     return tasks
+
+
+@router.get("/tasks/search", response_model=List[Task])
+def search_tasks(
+    q: Optional[str] = Query(None, description="Search in title or description"),
+    completed: Optional[bool] = Query(None, description="Filter by completion status"),
+):
+    result = tasks
+    if q:
+        q_lower = q.lower()
+        result = [
+            t for t in result
+            if q_lower in t.title.lower() or (t.description and q_lower in t.description.lower())
+        ]
+    if completed is not None:
+        result = [t for t in result if t.completed == completed]
+    return result
+
+
+@router.patch("/tasks/{task_id}/complete", response_model=Task)
+def mark_task_complete(task_id: int):
+    for i, task in enumerate(tasks):
+        if task.id == task_id:
+            tasks[i] = task.model_copy(update={"completed": True})
+            return tasks[i]
+    raise HTTPException(status_code=404, detail="Task not found")
 
 
 @router.get("/tasks/{task_id}", response_model=Task)
