@@ -67,7 +67,7 @@ def create_task(payload: TaskCreate):
 def update_task(task_id: int, payload: TaskUpdate):
     for i, task in enumerate(tasks):
         if task.id == task_id:
-            updated = task.model_copy(update=payload.model_dump(exclude_unset=True))
+            updated = task.model_copy(update={**payload.model_dump(exclude_unset=True), "updated_at": datetime.utcnow()})
             tasks[i] = updated
             return updated
     raise HTTPException(status_code=404, detail="Task not found")

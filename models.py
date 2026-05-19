@@ -21,3 +21,4 @@ class Task(BaseModel):
     description: Optional[str] = None
     completed: bool = False
     created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: Optional[datetime] = None
