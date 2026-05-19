@@ -10,9 +10,15 @@ PROJECT_ID="${2:?Usage: mr_review.sh <MR_IID> <PROJECT_ID>}"
 
 echo "Fetching diff for MR !${MR_IID} in project ${PROJECT_ID}..."
 
-RAW_DIFF=$(curl -s --fail \
+export RAW_DIFF=$(curl -s --fail \
   --header "PRIVATE-TOKEN: ${GITLAB_TOKEN}" \
   "${GITLAB_API_URL}/projects/${PROJECT_ID}/merge_requests/${MR_IID}/diffs")
+
+# Debug: verify we got something
+if [[ -z "$RAW_DIFF" ]]; then
+  echo "ERROR: Empty response from GitLab API. Check GITLAB_TOKEN permissions and GITLAB_API_URL." >&2
+  exit 1
+fi
 
 DIFF_TEXT=$(python3 - <<'PYEOF'
 import sys, json, os

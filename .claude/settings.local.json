@@ -6,7 +6,8 @@
       "PowerShell(Write-Host \"=== DELETE /api/v1/tasks/2 ===\"; try { Invoke-RestMethod -Uri \"http://localhost:8000/api/v1/tasks/2\" -Method DELETE; Write-Host \"204 No Content - Task deleted\" } catch { $_.Exception.Response.StatusCode }; Write-Host \"=== GET /api/v1/tasks \\(after delete\\) ===\"; Invoke-RestMethod -Uri \"http://localhost:8000/api/v1/tasks\" -Method GET | ConvertTo-Json)",
       "Bash(bash -n \"C:\\\\Users\\\\Coditas-Admin\\\\Documents\\\\FastApi\\\\demo-taskmanager\\\\mr_review.sh\")",
       "Bash(export GITLAB_TOKEN=dummy_token GITLAB_API_URL=https://gitlab.com/api/v4 CLAUDE_CODE_OAUTH_TOKEN=dummy_oauth)",
-      "Bash(bash -n mr_review.sh)"
+      "Bash(bash -n mr_review.sh)",
+      "Bash(git checkout *)"
     ]
   }
 }
