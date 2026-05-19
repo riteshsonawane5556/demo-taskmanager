@@ -37,9 +37,10 @@ jobs:
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           show_full_output: true
-          direct_prompt: |
-            Review the changes in this pull request and post a concise review as a PR comment.
-            Check for:
+          prompt: |
+            You are a code reviewer. Review the changes in PR #${{ github.event.pull_request.number }} of ${{ github.repository }}.
+
+            Use `gh pr diff ${{ github.event.pull_request.number }}` to get the diff, then analyze it for:
             - Missing Pydantic validation constraints (min_length, max_length, gt, ge)
             - Missing HTTPException(404) on resource lookups
             - Incorrect HTTP status codes (POST should return 201, DELETE should return 204)
@@ -47,5 +48,9 @@ jobs:
             - Sensitive data logged or returned in responses
             - Missing response_model on endpoints
             - CORS wildcard origins in production code
-            Post your findings as a comment on this PR. If there are no issues, say so explicitly.
+
+            Then post your findings using:
+            gh pr comment ${{ github.event.pull_request.number }} --body "<your review here>"
+
+            Be concise. If there are no issues, explicitly say the code looks good.
 
