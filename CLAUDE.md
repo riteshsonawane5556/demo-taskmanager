@@ -31,3 +31,6 @@ These rules apply whenever Claude reviews code in this repository.
 ## General
 - Prefer `response_model` on all endpoints to prevent accidental data leakage.
 - Async route handlers (`async def`) should be used when the handler performs I/O.
+
+## Skill Usage
+- ALWAYS invoke the `api-design-patterns` skill before writing any new API endpoint. Use the Skill tool with skill name `api-design-patterns` and apply its guidelines to the new endpoint before writing any code.

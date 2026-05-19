@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException, Query
-from typing import List, Optional
+from typing import Dict, List, Optional
 from models import Task, TaskCreate, TaskUpdate
 from datetime import datetime
 
@@ -80,3 +80,4 @@ def delete_task(task_id: int):
             tasks.pop(i)
             return
     raise HTTPException(status_code=404, detail="Task not found")
+
