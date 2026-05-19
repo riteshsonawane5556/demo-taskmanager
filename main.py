@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from routes.tasks import router as tasks_router
+from datetime import datetime
 
 app = FastAPI(title="Task Manager API")
 
@@ -18,3 +19,11 @@ app.include_router(tasks_router, prefix="/api/v1")
 @app.get("/")
 def root():
     return {"message": "Task Manager API", "status": "running"}
+
+
+@app.get("/health")
+def health_check():
+    return {
+        "status": "healthy",
+        "timestamp": datetime.utcnow().isoformat(),
+    }
