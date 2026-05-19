@@ -36,9 +36,16 @@ jobs:
         uses: anthropics/claude-code-action@v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
-          plugin_marketplaces: 'https://github.com/anthropics/claude-code.git'
-          plugins: 'code-review@claude-code-plugins'
-          prompt: '/code-review:code-review ${{ github.repository }}/pull/${{ github.event.pull_request.number }}'
-          # See https://github.com/anthropics/claude-code-action/blob/main/docs/usage.md
-          # or https://code.claude.com/docs/en/cli-reference for available options
+          show_full_output: true
+          direct_prompt: |
+            Review the changes in this pull request and post a concise review as a PR comment.
+            Check for:
+            - Missing Pydantic validation constraints (min_length, max_length, gt, ge)
+            - Missing HTTPException(404) on resource lookups
+            - Incorrect HTTP status codes (POST should return 201, DELETE should return 204)
+            - Hardcoded secrets, URLs, or tokens that should be in environment variables
+            - Sensitive data logged or returned in responses
+            - Missing response_model on endpoints
+            - CORS wildcard origins in production code
+            Post your findings as a comment on this PR. If there are no issues, say so explicitly.
 
