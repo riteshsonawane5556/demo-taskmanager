@@ -24,3 +24,4 @@ class Task(BaseModel):
     completed: bool = False
     priority: int = 1
     created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: Optional[datetime] = None
