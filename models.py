@@ -17,6 +17,12 @@ class TaskUpdate(BaseModel):
     priority: Optional[int] = None
 
 
+class TaskStats(BaseModel):
+    total: int
+    completed: int
+    pending: int
+
+
 class Task(BaseModel):
     id: int
     title: str
