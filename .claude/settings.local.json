@@ -13,7 +13,10 @@
       "PowerShell(Get-ChildItem \"C:\\\\Users\\\\Coditas-Admin\\\\Documents\\\\FastApi\\\\demo-taskmanager\" -Exclude \".venv\" | Where-Object { $_.Name -ne \".venv\" })",
       "PowerShell(Get-ChildItem \"C:\\\\Users\\\\Coditas-Admin\\\\.claude\" -Recurse | Where-Object { $_.Name -match \"api.design|api_design\" } | Select-Object FullName)",
       "Bash(xargs grep -l \"api-design\")",
-      "Skill(update-config)"
+      "Skill(update-config)",
+      "Bash(find C:\\\\Users\\\\Coditas-Admin\\\\Documents\\\\FastApi\\\\demo-taskmanager -name \"*.py\" -not -path \"*/.venv/*\" -not -path \"*/\\\\\\\\.venv/*\")",
+      "Bash(dir /s /b \"C:\\\\Users\\\\Coditas-Admin\\\\Documents\\\\FastApi\\\\demo-taskmanager\\\\*.py\")",
+      "Bash(findstr /v \".venv\")"
     ]
   },
   "hooks": {
