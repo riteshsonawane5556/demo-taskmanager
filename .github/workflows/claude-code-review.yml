@@ -7,45 +7,99 @@ on:
 jobs:
   claude-review:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
     permissions:
       contents: read
       pull-requests: write
-      issues: read
+      issues: write
       id-token: write
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Full history for proper diff context
+          fetch-depth: 0
 
       - name: Run Claude Code Review
         id: claude-review
         uses: anthropics/claude-code-action@v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
-          allowed_tools: "Bash,Read"
           show_full_output: true
+          claude_args: '--allowed-tools "Bash(gh pr *)" --allowed-tools "Bash(gh issue *)"'
+          
           prompt: |
-            You are a senior code reviewer for a Python/FastAPI codebase.
-            Review the pull request diff provided to you and check for:
+            Review this pull request for security vulnerabilities: ${{ github.event.pull_request.html_url }}
+            
+            CRITICAL SECURITY CHECKS - FAIL THE REVIEW IF ANY ARE FOUND:
+            
+            1. Hardcoded Credentials/Secrets:
+               - API keys, tokens, passwords in code
+               - Database connection strings with credentials
+               - OAuth secrets, encryption keys
+            
+            2. Command Injection Vulnerabilities:
+               - subprocess with shell=True
+               - eval(), exec() on user input
+            
+            3. Insecure Configurations:
+               - DEBUG = True
+               - CORS allow all origins
+            
+            First, check what changed:
+            ```bash
+                        gh pr diff ${{ github.event.pull_request.number }}
+            ```
+                        
+                        Scan each changed file for issues above.
+                        
+                        After reviewing, POST your findings in md format as a comment on the PR. Make the comment detailed and actionable. :
+            ```bash
+                        gh pr comment ${{ github.event.pull_request.number }} --body "## 🔒 Claude Security Review
+                        
+                        [Your detailed findings]"
+            ```
+                        
+                        If you found ANY critical issues:
+                        1. Request changes:
+            ```bash
+                        gh pr review ${{ github.event.pull_request.number }} --request-changes --body "BLOCKING: Critical security vulnerabilities detected."
+            ```
+                        
+                        2. Create a file to signal failure:
+            ```bash
+                        echo "CRITICAL_ISSUES_FOUND" > /tmp/security-check-failed.txt
+            ```
+        env:
+          GH_TOKEN: ${{ github.token }}
 
-            - Missing Pydantic validation constraints (min_length, max_length, gt, ge)
-            - Missing HTTPException(status_code=404) on resource lookups
-            - Incorrect HTTP status codes (POST → 201, DELETE → 204)
-            - Hardcoded secrets, URLs, or tokens that should use environment variables
-            - Sensitive data exposed in logs or API responses
-            - FastAPI endpoints missing a response_model
-            - CORS wildcard origins (*) in production configuration
-
-            After completing your analysis, post your findings as a PR comment using:
-            gh pr comment ${{ github.event.pull_request.number }} --body "$(cat <<'REVIEW'
-            <your full markdown review here>
-            REVIEW
-            )"
-
-            Format your response as a markdown comment with:
-            - A brief summary at the top
-            - Each issue as a bullet with file + line reference if possible
-            - If no issues found, say so explicitly
+      # NEW STEP: Check if Claude found critical issues and FAIL the workflow
+      - name: Check Security Review Result
+        if: always()
+        run: |
+          echo "Checking if security issues were found..."
+          
+          # Check if Claude requested changes
+          REVIEW_STATE=$(gh pr view ${{ github.event.pull_request.number }} --json reviewDecision --jq '.reviewDecision')
+          echo "Review decision: $REVIEW_STATE"
+          
+          # Check for the failure signal file
+          if [ -f /tmp/security-check-failed.txt ]; then
+            echo "❌ CRITICAL SECURITY ISSUES FOUND - FAILING THE CHECK"
+            exit 1
+          fi
+          
+          # Also check if Claude posted a BLOCKING comment
+          if gh pr view ${{ github.event.pull_request.number }} --json comments --jq '.comments[].body' | grep -q "BLOCKING.*critical"; then
+            echo "❌ BLOCKING security issues detected in comments"
+            exit 1
+          fi
+          
+          # Check review decision
+          if [ "$REVIEW_STATE" = "CHANGES_REQUESTED" ]; then
+            echo "❌ Changes requested - check failed"
+            exit 1
+          fi
+          
+          echo "✅ No critical security issues found"
+        env:
+          GH_TOKEN: ${{ github.token }}
