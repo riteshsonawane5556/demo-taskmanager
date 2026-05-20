@@ -38,6 +38,12 @@ jobs:
             - FastAPI endpoints missing a response_model
             - CORS wildcard origins (*) in production configuration
 
+            After completing your analysis, post your findings as a PR comment using:
+            gh pr comment ${{ github.event.pull_request.number }} --body "$(cat <<'REVIEW'
+            <your full markdown review here>
+            REVIEW
+            )"
+
             Format your response as a markdown comment with:
             - A brief summary at the top
             - Each issue as a bullet with file + line reference if possible
