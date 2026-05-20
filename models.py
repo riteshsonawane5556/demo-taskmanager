@@ -4,15 +4,23 @@ from typing import Optional
 
 
 class TaskCreate(BaseModel):
-    title: str
-    description: Optional[str] = None
+    title: str = Field(min_length=1, max_length=200)
+    description: Optional[str] = Field(default=None, max_length=1000)
     completed: bool = False
+    priority: int = 1
 
 
 class TaskUpdate(BaseModel):
-    title: Optional[str] = None
-    description: Optional[str] = None
+    title: Optional[str] = Field(default=None, min_length=1, max_length=200)
+    description: Optional[str] = Field(default=None, max_length=1000)
     completed: Optional[bool] = None
+    priority: Optional[int] = None
+
+
+class TaskStats(BaseModel):
+    total: int
+    completed: int
+    pending: int
 
 
 class Task(BaseModel):
@@ -20,4 +28,6 @@ class Task(BaseModel):
     title: str
     description: Optional[str] = None
     completed: bool = False
+    priority: int = 1
     created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: Optional[datetime] = None

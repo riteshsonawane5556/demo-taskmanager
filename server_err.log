@@ -4,3 +4,19 @@ INFO:     Started reloader process [26176] using StatReload
 INFO:     Started server process [25760]
 INFO:     Waiting for application startup.
 INFO:     Application startup complete.
+WARNING:  StatReload detected changes in 'main.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [25760]
+INFO:     Started server process [41180]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+WARNING:  StatReload detected changes in 'main.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [41180]
+INFO:     Started server process [42228]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
