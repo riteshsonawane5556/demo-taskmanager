@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, Query
-from typing import Dict, List, Literal, Optional
+from typing import List, Literal, Optional
 from models import Task, TaskCreate, TaskStats, TaskUpdate
-from datetime import datetime
+from datetime import datetime, timezone
 
 router = APIRouter()
 
@@ -13,14 +13,22 @@ _id_counter = 1
 def list_tasks(
     sort_by: Literal["created_at", "updated_at", "due_date", "title"] = Query("created_at", description="Field to sort by"),
     order: Literal["asc", "desc"] = Query("asc", description="Sort direction"),
+    due_before: Optional[datetime] = Query(None, description="Filter tasks due before this datetime"),
+    due_after: Optional[datetime] = Query(None, description="Filter tasks due after this datetime"),
 ):
     def sort_key(task: Task):
         value = getattr(task, sort_by)
         if value is None:
             return (1, "")
-        return (0, value) if sort_by == "title" else (0, value)
+        return (0, value)
 
-    return sorted(tasks, key=sort_key, reverse=(order == "desc"))
+    result = tasks
+    if due_before is not None:
+        result = [t for t in result if t.due_date is not None and t.due_date <= due_before]
+    if due_after is not None:
+        result = [t for t in result if t.due_date is not None and t.due_date >= due_after]
+
+    return sorted(result, key=sort_key, reverse=(order == "desc"))
 
 
 @router.get("/tasks/search", response_model=List[Task])
@@ -44,6 +52,12 @@ def search_tasks(
 def get_task_stats():
     completed = sum(1 for t in tasks if t.completed)
     return TaskStats(total=len(tasks), completed=completed, pending=len(tasks) - completed)
+
+
+@router.get("/tasks/overdue", response_model=List[Task])
+def get_overdue_tasks():
+    now = datetime.now(timezone.utc).replace(tzinfo=None)
+    return [t for t in tasks if t.due_date is not None and t.due_date < now and not t.completed]
 
 
 @router.patch("/tasks/{task_id}/complete", response_model=Task)
@@ -71,6 +85,7 @@ def create_task(payload: TaskCreate):
         title=payload.title,
         description=payload.description,
         completed=payload.completed,
+        priority=payload.priority,
         due_date=payload.due_date,
         created_at=datetime.utcnow(),
     )
@@ -88,12 +103,11 @@ def update_task(task_id: int, payload: TaskUpdate):
             return updated
     raise HTTPException(status_code=404, detail="Task not found")
 
-@router.delete("/tasks/{task_id}", status_code=204)
+
+@router.delete("/tasks/{task_id}", status_code=204, response_model=None)
 def delete_task(task_id: int):
     for i, task in enumerate(tasks):
         if task.id == task_id:
             tasks.pop(i)
             return
     raise HTTPException(status_code=404, detail="Task not found")
-
-
