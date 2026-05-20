@@ -3,22 +3,11 @@ name: Claude Code Review
 on:
   pull_request:
     types: [opened, synchronize, ready_for_review, reopened]
-    # Optional: Only run on specific file changes
-    # paths:
-    #   - "src/**/*.ts"
-    #   - "src/**/*.tsx"
-    #   - "src/**/*.js"
-    #   - "src/**/*.jsx"
 
 jobs:
   claude-review:
-    # Optional: Filter by PR author
-    # if: |
-    #   github.event.pull_request.user.login == 'external-contributor' ||
-    #   github.event.pull_request.user.login == 'new-developer' ||
-    #   github.event.pull_request.author_association == 'FIRST_TIME_CONTRIBUTOR'
-
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     permissions:
       contents: read
       pull-requests: write
@@ -29,7 +18,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 1
+          fetch-depth: 0  # Full history for proper diff context
 
       - name: Run Claude Code Review
         id: claude-review
@@ -38,19 +27,18 @@ jobs:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           show_full_output: true
           prompt: |
-            You are a code reviewer. Review the changes in PR #${{ github.event.pull_request.number }} of ${{ github.repository }}.
+            You are a senior code reviewer for a Python/FastAPI codebase.
+            Review the pull request diff provided to you and check for:
 
-            Use `gh pr diff ${{ github.event.pull_request.number }}` to get the diff, then analyze it for:
             - Missing Pydantic validation constraints (min_length, max_length, gt, ge)
-            - Missing HTTPException(404) on resource lookups
-            - Incorrect HTTP status codes (POST should return 201, DELETE should return 204)
-            - Hardcoded secrets, URLs, or tokens that should be in environment variables
-            - Sensitive data logged or returned in responses
-            - Missing response_model on endpoints
-            - CORS wildcard origins in production code
+            - Missing HTTPException(status_code=404) on resource lookups
+            - Incorrect HTTP status codes (POST → 201, DELETE → 204)
+            - Hardcoded secrets, URLs, or tokens that should use environment variables
+            - Sensitive data exposed in logs or API responses
+            - FastAPI endpoints missing a response_model
+            - CORS wildcard origins (*) in production configuration
 
-            Then post your findings using:
-            gh pr comment ${{ github.event.pull_request.number }} --body "<your review here>"
-
-            Be concise. If there are no issues, explicitly say the code looks good.
-
+            Format your response as a markdown comment with:
+            - A brief summary at the top
+            - Each issue as a bullet with file + line reference if possible
+            - If no issues found, say so explicitly
