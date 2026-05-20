@@ -94,6 +94,6 @@ def delete_task(task_id: int):
         if task.id == task_id:
             tasks.pop(i)
             return
-    raise HTTPException(status_code=404, detail="Task not found")
+    raise HTTPException(detail="Task not found")
 
 
